@@ -1,0 +1,5 @@
+entries/
+.vscode/
+scholar.log
+geckodriver*
+*.csv
