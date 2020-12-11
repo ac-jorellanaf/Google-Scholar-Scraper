@@ -1,6 +1,6 @@
 # Commented out lines the program will ignore start with a pound sign,
 google scholar,150
 github|git,100
-# "Queries that contain double quotes for search literals (e.g. "ex" machina) must be surrounded by double quotes",
-# and the quotes in the search query must be replaced by two double quotes (e.g. """ex"" machina"),
+# Queries that contain double quotes for search literals must be surrounded by double quotes,
+# and the quotes in the search query must be replaced by two double quotes,
 "write a ""systematic literature"" review",50
