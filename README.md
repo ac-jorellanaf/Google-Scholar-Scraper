@@ -33,6 +33,7 @@ optional arguments:
 # To-Do
 
 *  Write a proper readme.
+*  Comment the code.
 *  Warm users of the peril of suggested DOIs.
 *  Improve iteration method for going through GS entries.
 *  Make --nodoi and the email arg mutually exclusive.
