@@ -18,8 +18,8 @@ optional arguments:
                         Set a custom filepath for a .csv file of entries to scrape, rather than use the queries.csv file.
   -n, --numentries
                         Set a custom in-line number of entries to scrape, rather than use the queries.csv file.
-  -op, --outpath
-                        Set a custom path for where the search .CSV files should be stored.
+  -op, --outdir
+                        Set a custom path for the directory where the search .CSV files should be stored.
   -nm, --nomerge
                         Do not merge the .CSV files after searching.
   -nd, --nodoi
@@ -38,3 +38,4 @@ optional arguments:
 *  Improve iteration method for going through GS entries.
 *  Make --nodoi and the email arg mutually exclusive.
 *  Warn users about captchas.
+*  Add argument to allow for user to input the top n entries to merge

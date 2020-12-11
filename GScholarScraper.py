@@ -1,13 +1,10 @@
 from habanero import Crossref
-from scholarly import scholarly
-import numpy as np
+import scholarly
 import argparse
 import csv
 from pathlib import Path
 import pandas as pd
 import re
-import datetime
-import sys
 import time
 
 
@@ -22,7 +19,7 @@ def main(args):
     DOI_KEY = 'SUGGESTED_DOI'
     NUM_ATTEMPTS = 10
 
-    def scrapeGS(query, numentries, outpath, verbose):
+    def scrapeGS(query, numentries, outdir, verbose):
         DEFENTRIES = 20
 
         if (not numentries or not numentries.strip()):
@@ -84,9 +81,9 @@ def main(args):
                 print(
                     'Too many failed attempts at scraping Google Scholar. Please run the program again.')
 
-        date = datetime.datetime.now().strftime('%Y-%m-%dT%H%M%S')
+        date = time.strftime('%Y-%m-%dT%H%M%S', time.localtime(time.time()))
         regex = re.compile('[^a-zA-Z]')
-        outfile = Path(outpath / (date + '_' +
+        outfile = Path(outdir / (date + '_' +
                                   regex.sub('', query.lower())[:15] + '.csv'))
 
         with open(str(outfile), 'w', newline='', encoding='utf-8') as csvfile:
@@ -142,21 +139,26 @@ def main(args):
                 if (verbose):
                     print('{} DOIs processed.'.format(i + 1))
 
-    def mergeSearch(filenames, outpath):
+    def mergeSearch(filenames, outdir, verbose):
         dfs = []
+        if (verbose):
+            print('\nMerging {} csv files.'.format(len(filenames)))
         for filename in filenames:
             df = pd.read_csv(str(filename), dtype=str)
-            dfs.append(df[0:25])
+            dfs.append(df)
 
         fulldf = pd.concat(dfs, ignore_index=True, keys=None, sort=False)
         mergeddf = pd.DataFrame.drop_duplicates(
             fulldf, subset=[AUTHOR_KEY, PUB_YEAR_KEY, TITLE_KEY], ignore_index=True)
 
-        date = datetime.datetime.now().strftime('%Y-%m-%dT%H%M%S')
+        date = time.strftime('%Y-%m-%dT%H%M%S', time.localtime(time.time()))
 
-        outfile = Path(outpath / ('merged_' + date + '.csv'))
+        outfile = Path(outdir / ('merged_' + date + '.csv'))
 
         mergeddf.to_csv(str(outfile), index=False)
+        
+        if (verbose):
+            print('\nMerging complete: {}.'.format(outfile))
 
     def processQueries(querystr, numentries, queryfile):
         if (querystr and querystr.strip()):
@@ -171,7 +173,7 @@ def main(args):
             return queries
 
     def scrapeWrapper(email, querystr=None, queryfile='queries.csv', numentries=None,
-                      outpath=None, nomerge=False, nodoi=False, getdoi=None, verbose=False):
+                      outdir=None, nomerge=False, nodoi=False, getdoi=None, verbose=False):
         if (not getdoi):
             queries = processQueries(querystr, numentries, queryfile)
             outfiles = []
@@ -183,18 +185,18 @@ def main(args):
                 for [query, nentries] in queries:
                     print('query: {} - {} entries.'.format(query, nentries))
 
-            if (not outpath):
-                date = datetime.datetime.now().strftime('%Y-%m-%dT%H%M%S')
-                outpath = Path('entries/' + date)
-                outpath.mkdir(exist_ok=True)
+            if (not outdir):
+                date = time.strftime('%Y-%m-%dT%H%M%S', time.localtime(time.time()))
+                outdir = Path('entries/' + date)
+                outdir.mkdir(exist_ok=True)
                 if (verbose):
-                    print('\nOutput path: {}'.format(outpath))
+                    print('\nOutput path: {}'.format(outdir))
 
             for query, numentries in queries:
                 if (verbose):
                     print('\nStarting GS scrape: {}'.format(query))
                 outfiles.append(
-                    scrapeGS(query, numentries, outpath, verbose))
+                    scrapeGS(query, numentries, outdir, verbose))
         else:
             if (Path(getdoi).is_file()):
                 outfiles = [Path(getdoi)]
@@ -212,10 +214,10 @@ def main(args):
                 getDOIs(outfile, cr, verbose)
 
         if (not nomerge and len(outfiles) > 1):
-            mergeSearch(outfiles, outpath)
+            mergeSearch(outfiles, outdir, verbose)
 
     scrapeWrapper(args.email, args.querystr, args.queryfile, args.numentries,
-                  args.outpath, args.nomerge, args.nodoi, args.getdoi, args.verbose)
+                  args.outdir, args.nomerge, args.nodoi, args.getdoi, args.verbose)
 
 
 if __name__ == '__main__':
@@ -230,8 +232,8 @@ if __name__ == '__main__':
                             help='Set a custom filepath for a .csv file of entries to scrape, rather than use the queries.csv file.')
     parser.add_argument('-n', '--numentries',
                         help='Set a custom in-line number of entries to scrape, rather than use the queries.csv file.')
-    parser.add_argument('-op', '--outpath',
-                        help='Set a custom path for where the search .CSV files should be stored.')
+    parser.add_argument('-od', '--outdir',
+                        help='Set a custom path for the directory where the search .CSV files should be stored.')
     parser.add_argument('-nm', '--nomerge',
                         help='Do not merge the .CSV files after searching.', default=False)
     doigroup = parser.add_mutually_exclusive_group()
