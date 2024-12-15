@@ -1,5 +1,5 @@
 from habanero import Crossref
-import scholarly
+from scholarly import scholarly
 import argparse
 import csv
 from pathlib import Path
@@ -49,6 +49,8 @@ def main(args):
             for attempt in range(NUM_ATTEMPTS):
                 try:
                     entrydict = next(search_query)
+                    # entry = next(search_query)
+                    # entrydict = scholarly.fill(entry)
                     authors = re.sub(r'[\[\]\']', '', str(
                         entrydict['bib'][AUTHOR_KEY.lower()]).replace(',', ';'))
                     pubyear = str(entrydict['bib'][PUB_YEAR_KEY.lower()])
@@ -60,7 +62,7 @@ def main(args):
                         AUTHOR_KEY: authors,
                         PUB_YEAR_KEY: pubyear,
                         TITLE_KEY: title,
-                        SCHOLAR_LINK_KEY: 'https://scholar.google.com' + entrydict['url_scholarbib'].replace('?q=info:', '?cluster=').replace(':scholar.google.com/&output=cite&scirp=' + str(i), ''),
+                        SCHOLAR_LINK_KEY: 'https://scholar.google.com' + entrydict['url_scholarbib'].replace('q=info:', 'cluster=').replace(':scholar.google.com/&output=cite&scirp=' + str(i), ''),
                         PUB_URL_KEY: str(entrydict[PUB_URL_KEY.lower()]),
                         GSRANK_KEY: str(entrydict[GSRANK_KEY.lower()]),
                         NUM_CITATIONS_KEY: str(
@@ -80,6 +82,7 @@ def main(args):
             else:
                 print(
                     'Too many failed attempts at scraping Google Scholar. Please run the program again.')
+                quit()
 
         date = time.strftime('%Y-%m-%dT%H%M%S', time.localtime(time.time()))
         regex = re.compile('[^a-zA-Z]')
@@ -165,10 +168,10 @@ def main(args):
             return [[querystr, numentries]]
         else:
             queries = []
-            with open(queryfile) as csvfile:
+            with open(queryfile.strip()) as csvfile:
                 reader = csv.DictReader(csvfile, delimiter=',')
                 for row in reader:
-                    if (row.strip()[0] != '#'):
+                    if (row['QUERY'].strip()[0] != '#'):
                         queries.append([row['QUERY'], row['NUMENTRIES']])
             return queries
 
@@ -228,18 +231,18 @@ if __name__ == '__main__':
     querygroup = parser.add_mutually_exclusive_group()
     querygroup.add_argument('-q', '--querystr',
                             help='Set a custom in-line query, rather than use a query file.')
-    querygroup.add_argument('-qf', '--queryfile',
-                            help='Set a custom filepath for a .csv file of entries to scrape, rather than use the queries.csv file.')
-    parser.add_argument('-n', '--numentries',
+    querygroup.add_argument('-f', '--queryfile',
+                            help='Set a custom filepath for a .csv file of entries to scrape, rather than use the queries.csv file.', default='queries.csv')
+    parser.add_argument('-e', '--numentries',
                         help='Set a custom in-line number of entries to scrape, rather than use the queries.csv file.')
-    parser.add_argument('-od', '--outdir',
+    parser.add_argument('-o', '--outdir',
                         help='Set a custom path for the directory where the search .CSV files should be stored.')
-    parser.add_argument('-nm', '--nomerge',
+    parser.add_argument('-m', '--nomerge',
                         help='Do not merge the .CSV files after searching.', default=False)
     doigroup = parser.add_mutually_exclusive_group()
-    doigroup.add_argument('-nd', '--nodoi',
+    doigroup.add_argument('-n', '--nodoi',
                           help='Do not scrape CrossRef for DOIs after the search.', default=False)
-    doigroup.add_argument('-doi', '--getdoi',
+    doigroup.add_argument('-d', '--getdoi',
                           help='Set a directory or file of GS searches for which to find the suggested entry DOIs. Combineable with --nomerge.')
     parser.add_argument('-v', '--verbose',
                         help='Verbose mode.')
