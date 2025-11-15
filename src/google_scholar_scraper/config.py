@@ -10,7 +10,7 @@ def parse_args():
     parser = argparse.ArgumentParser(prog='Google Scholar Scraper',
                                      description='Scrape Google Scholar entries by keywords.')
     parser.add_argument(
-        'serp_api_key', help='The API key for your SERP account to use to scrape Google Scholar data.'
+        'serp_api_key', help='The API key for your SerpApi account to use to scrape Google Scholar data.'
     )
     parser.add_argument(
         'email', help='For faster Crossref API queries, we require an email address.')
