@@ -1,4 +1,3 @@
-habanero==1.2.2
-numpy==1.24.1
-pandas==1.5.2
-scholarly==1.7.9
+habanero==2.3.0
+numpy==2.3.4
+pandas==2.3.3

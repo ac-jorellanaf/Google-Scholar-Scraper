@@ -1,0 +1,33 @@
+[build-system]
+requires = ['setuptools']
+build-backend = 'setuptools.build_meta'
+
+[project]
+name = 'Google Scholar Scraper'
+version = '0.2.0'
+description = 'A package a semi-automated scraping of Google Scholar search results'
+authors = [
+    { name='Jordy Didier Orellana Figueroa' }
+]
+readme = 'README.md'
+requires-python = '>=3.14.*'
+license = 'Unlicense'
+license-files = [
+    'LICENSE',
+]
+classifiers=[
+        'Programming Language :: Python :: 3.14',
+        'Development Status :: 3 - Alpha',
+        'Operating System :: OS Independent',
+]
+dependencies = [
+]
+
+[project.urls]
+Repository = "https://github.com/ac-jorellanaf/Google-Scholar-Scraper"
+
+[tool.distutils.egg_info]
+egg_base = 'build'
+
+[tool.setuptools.package-data]
+'google_scholar_scraper.data' = ['*.*']

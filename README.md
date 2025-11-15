@@ -1,41 +1,21 @@
 # Google Scholar Scraper
 
-A wrapper for the scholarly library to scrape Google Scholar entries through a keyword search, and add suggested DOIs using CrossRef with habanero.  
-Note: Scholarly requires the geckodriver browser to allow the user to solve Google captchas.
+A wrapper for the SERP API to scrape Google Scholar entries through a keyword search, as well as adding **suggested** DOIs using CrossRef with habanero.
 
-## Help
-```
-Scrape Google Scholar entries by keywords.
+## Installation
 
-positional arguments:
-  email                 For faster Crossref API queries, we require an e-mail address
+Download the contents of the repository to your computer (be it a release or with `git clone {URL}`). Open a console and navigate it to the downloaded repository's base folder (i.e. the one containing the `README.md` file), then the src/ directory, and from there run `python -m google-scholar-scraper {YOUR_SERP_API_KEY} {YOUR_EMAIL}`.
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -q, --querystr
-                        Set a custom in-line query, rather than use a query file.
-  -qf, --queryfile
-                        Set a custom filepath for a .csv file of entries to scrape, rather than use the queries.csv file.
-  -n, --numentries
-                        Set a custom in-line number of entries to scrape, rather than use the queries.csv file.
-  -op, --outdir
-                        Set a custom path for the directory where the search .CSV files should be stored.
-  -nm, --nomerge
-                        Do not merge the .CSV files after searching.
-  -nd, --nodoi
-                        Do not scrape CrossRef for DOIs after the search.
-  -doi, --getdoi
-                        Set a directory or file of GS searches for which to find the suggested entry DOIs. Combineable with --nomerge.
-  -v, --verbose
-                        Verbose mode.
-```
+## Usage
 
-# To-Do
+To view the list of arguments, run `python -m google-scholar-scraper -h`.
 
-*  Write a proper readme.
-*  Comment the code.
-*  Warm users of the peril of suggested DOIs.
-*  Improve iteration method for going through GS entries.
-*  Make --nodoi and the email arg mutually exclusive.
-*  Warn users about captchas.
-*  Add argument to allow for user to input the top n entries to merge
+If you want to use the default query file location, you should create a folder named `queries` in the repository's base folder (i.e. the one containing the `README.md` file). In the queries folder, create a `.csv` file named `queries.csv` with the first column defining the search query to use and the second column the number of search results to obtain. See [the example query .csv file](./example_query_file.csv) for further details.
+
+An minimum working example for using an inline query is `python -m google-scholar-scraper {YOUR_SERP_API_KEY} {YOUR_EMAIL} -q="google scholar" -e=200`.
+
+To specify your own query file in another location, run `python -m google-scholar-scraper {YOUR_SERP_API_KEY} {YOUR_EMAIL} f={PATH_TO_FILE}`
+
+## License
+
+This work is an open source work licensed according to the terms of the Unlicense (see license file)

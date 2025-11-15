@@ -1,0 +1,20 @@
+QUERY,MAX_RESULTS
+# This is a comma separated file. The first column is the query string, the
+# second is the maximum number of results to return.
+# Lines starting with a pound sign are commented out and ignored by the code.
+# As will empty lines.
+
+google scholar,5
+github|git,10
+
+# Leave the MAX_RESULTS column empty if you want to use the default
+# (or user-specified default) number of maximum search results
+
+academics
+
+# Queries that contain double quotes for search literals must start and end with
+# double quotes, and the quotes in the search query for the string literals must
+# be surrounded by additional double quotes. For example:
+# "systematic literature" review -> """systematic literature"" review"
+
+"write a ""systematic literature"" review",5
