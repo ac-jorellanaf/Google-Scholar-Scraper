@@ -1,6 +1,6 @@
 from google_scholar_scraper.config import parse_args
 from google_scholar_scraper.serp_query import scrape_google_scholar
-from google_scholar_scraper.utils import merge_search, parse_queries
+from google_scholar_scraper.utils import merge_search, parse_queries, select_dir
 from google_scholar_scraper.crossref_query.crossref_query import crossref_query
 import time
 from pathlib import Path as p
@@ -14,45 +14,44 @@ def main():
     args = parse_args()
 
     # Assign them to prettier variables
-    serp_api_key, email, query_file, query_string, max_results, base_output_dir, \
-        custom_output_dir, no_merge, no_doi, doi_only, recursive_doi_only, verbose = \
-        args.serp_api_key, args.email, args.query_file, args.query_string, \
-        args.max_results, args.base_output_dir, args.custom_output_dir, \
-        args.no_merge, args.no_doi, args.doi_only, args.recursive_doi_only, args.verbose
+    serp_api_key, email, query_file, query_string, interactive_query_file_picker, \
+        max_results, base_output_dir, interactive_base_output_dir_picker, \
+        custom_output_dir_name, no_merge, no_doi, doi_only, recursive_doi_only, \
+        verbose = \
+        args.serp_api_key, args.email, args.query_file, \
+        args.query_string, args.interactive_query_file_picker, \
+        args.max_results, args.base_output_dir, \
+        args.interactive_base_output_dir_picker, \
+        args.custom_output_dir_name, args.no_merge, args.no_doi, args.doi_only, \
+        args.recursive_doi_only, args.verbose
 
     if verbose:
         print('\nGoogle Scholar Scraper')
-
-    # Check that if we have defined a query string, we have also properly
-    # defined the number of maximum entries to search for
-    try:
-        assert query_string.strip() and max_results if query_string else True
-    except AssertionError:
-        print('\nError: If not using a query file, please specify both the query ' +
-              'string and max entries arguments to use for the search. ' +
-              'Otherwise leave them both unset. Program called with ' +
-              f'query_string="{query_string if query_string else ''}" ' +
-              f'and max_results="{max_results if max_results else ''}".')
-        exit(400)
 
     # Check that max_results can be converted to an integer and is greater than 0
     try:
         assert int(max_results) if max_results else True
         assert max_results > 0 if max_results else True
-    except AssertionError:
+    except Exception:
         print(
             f'\nError: max_results ("{max_results}") is not a valid positive integer')
         exit(406)
 
+    # Take the base output dir value and convert it to a Path object
     base_output_dir = p(base_output_dir)
+
+    # If the user requested the use of the interactive directory picker,
+    # run the method to get the chosen base output directory
+    if (interactive_base_output_dir_picker):
+        base_output_dir = select_dir()
 
     # If the user did not specify a custom output directory name, specify
     # the default one using the current timestamp
-    if (not custom_output_dir):
-        custom_output_dir = time.strftime(
+    if (not custom_output_dir_name):
+        custom_output_dir_name = time.strftime(
             '%Y-%m-%dT%H%M%S', time.localtime(time.time()))
     # Create the output directory recursively
-    output_dir = p(base_output_dir / custom_output_dir)
+    output_dir = p(base_output_dir / custom_output_dir_name)
     output_dir.mkdir(exist_ok=True, parents=True)
     if (verbose):
         print(f'\nOutput path: {str(output_dir)}')
@@ -60,7 +59,8 @@ def main():
     # If we do not want to just get the DOI for existing search results
     if (not doi_only):
         # Get the list of queries to run
-        parsed_queries = parse_queries(query_string, max_results, query_file)
+        parsed_queries = parse_queries(
+            query_string, max_results, query_file, interactive_query_file_picker)
         # Declare an array of output file paths
         output_files = []
 
