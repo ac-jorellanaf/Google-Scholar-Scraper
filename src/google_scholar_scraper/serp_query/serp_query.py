@@ -95,7 +95,7 @@ def scrape_google_scholar(serp_api_key, search_query, max_results, base_output_d
                         # In the rare case that we ran out of search results before
                         # reaching our desired number of results, stop performing more queries
                         # by exiting the method
-                        if idx < num_results:
+                        if idx + 1 < num_results:
                             return
 
                         # If we reach this point, the query was successful, so break from
