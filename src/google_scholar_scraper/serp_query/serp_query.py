@@ -30,8 +30,34 @@ def scrape_google_scholar(serp_api_key, search_query, max_results, base_output_d
             num_results = min(max_results - start,
                               global_vars.default_serp_max_results)
 
+            # Set up a variable to check if we should run a Serp API query with
+            # the cache disabled
+            no_cache = False
+
+            attempt = 0
+
             # Attempt the query as many times as we have set
-            for attempt in range(global_vars.max_attempts):
+            while attempt < global_vars.max_attempts:
+                def perform_no_cache_query(no_cache, fewer=False):
+                    """Handle the performance of a no cache query,
+                    providing warning error messages to the users"""
+                    # If we had already tried with no cache, there are no
+                    # more search results, so inform the user
+                    if no_cache:
+                        print(
+                            '\nWarning! No more search results found with the uncached query. Terminating search')
+                        print(
+                            f'Query: {search_query}. Total results found: {len([x for x in results if x is not None])}')
+                        # Return that we should stop attempting more searches
+                        return True
+                    # Inform the user
+                    print(
+                        f'\nSerpApi returned {"fewer results than required" if fewer else "no results"}. Trying an uncached search.')
+                    print(
+                        f'Query: {search_query}. Total results found: {len([x for x in results if x is not None])}')
+                    # Return that we should not stop attempting more searches
+                    return False
+
                 # Try to query the API
                 try:
                     # URL encode the search query we want to use to search Google Scholar with
@@ -39,10 +65,24 @@ def scrape_google_scholar(serp_api_key, search_query, max_results, base_output_d
                     # Build the query URL
                     url = f'https://serpapi.com/search?engine=google_scholar&api_key={serp_api_key}' +\
                         f'&start={start}&num={num_results}&q={clean_query}'
+                    url = f'{url}&no_cache=true' if no_cache else url
                     # Process the response
                     with request.urlopen(url) as response:
                         # Store the JSON response into a dictionary
                         search_results = json.loads(response.read())
+                        # If there were no results returned, try again once with
+                        # an uncached query
+                        if ('organic_results' not in search_results):
+                            no_more_attempts = perform_no_cache_query(no_cache)
+                            # If we should not attempt again, exit the method
+                            if no_more_attempts:
+                                return
+                            # Otherwise, set the next search to be uncached
+                            no_cache = True
+                            # Continue to the next attempt without increasing
+                            # the number of attempts
+                            continue
+                        no_cache = False
                         # We only care about the 'organic_results' property, so
                         # overwrite the search_results variable with it
                         search_results = search_results['organic_results']
@@ -88,15 +128,24 @@ def scrape_google_scholar(serp_api_key, search_query, max_results, base_output_d
                                 global_vars.num_citations_key: num_citations
                             }
 
-                            # If verbose logging was requested, provide constant information
-                            if (verbose and (start + idx + 1) % 100 == 0 or idx + 1 == num_results and num_results < global_vars.default_serp_max_results):
-                                print(f'{start + idx + 1} entries scraped')
+                        # If verbose logging was requested, provide constant information
+                        if (verbose):
+                            print(
+                                f'\n{len([x for x in results if x is not None])} entries scraped')
 
                         # In the rare case that we ran out of search results before
-                        # reaching our desired number of results, stop performing more queries
-                        # by exiting the method
+                        # reaching our desired number of results, try to perform
                         if idx + 1 < num_results:
-                            return
+                            no_more_attempts = perform_no_cache_query(
+                                no_cache, fewer=True)
+                            # If we should not attempt again, exit the method
+                            if no_more_attempts:
+                                return
+                            # Otherwise, set the next search to be uncached
+                            no_cache = True
+                            # Continue to the next attempt without increasing
+                            # the number of attempts
+                            continue
 
                         # If we reach this point, the query was successful, so break from
                         # the for loop, since we do not need to attempt the process again
@@ -107,6 +156,7 @@ def scrape_google_scholar(serp_api_key, search_query, max_results, base_output_d
                     print(f'\n{e}')
                     print(
                         f'\nThere was a problem scraping Google Scholar publications. Retrying in 15 seconds. Attempt {attempt + 1} of {global_vars.max_attempts}')
+                    attempt += 1
                     time.sleep(15)
                     continue
             # If we finished the for loop, we ran out of retry attempts. Inform the user and exit
